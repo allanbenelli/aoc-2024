@@ -15,7 +15,7 @@ fun main() {
     
     fun isValidUpdate(update: List<Int>, rules: List<Pair<Int, Int>>): Boolean {
         val positions = update.withIndex().associate { it.value to it.index }
-        for ((x, y) in rules) {
+        for ((x, y) in rules) { // todo: instead of iterating over all rules, use only relevant rules or precedence map from part2
             if (x in positions && y in positions && positions[x]!! >= positions[y]!!) {
                 return false // x should appear before y, but it doesn't
             }
