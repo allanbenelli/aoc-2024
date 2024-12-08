@@ -37,10 +37,10 @@ val diagonalDirections = listOf(
     diagonalUpRight
 )
 val normalDirections = listOf(
-    directionLeft,
-    directionRight,
     directionUp,
-    directionDown
+    directionRight,
+    directionDown,
+    directionLeft
 )
 val directions = listOf(
     *normalDirections.toTypedArray(),
