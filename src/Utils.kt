@@ -46,3 +46,5 @@ val directions = listOf(
     *normalDirections.toTypedArray(),
     *diagonalDirections.toTypedArray()
 )
+
+data class Position(val x: Int, val y: Int)
