@@ -136,7 +136,7 @@ fun main() {
     val testInput = readInput("$day/test")
     check(part1(testInput) == 11048)
     part2(testInput).println()
-    //check(part2(testInput) == 64)
+    check(part2(testInput) == 64)
 
     // Read the input from the `src/input.txt` file.
     val input = readInput("$day/input")
