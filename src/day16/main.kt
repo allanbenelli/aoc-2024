@@ -76,43 +76,58 @@ fun main() {
         return costMap[end]!! to costMap
     }
     
-    fun reverseTraversalOld(
-        start: Pair<Int, Int>,
+    fun reverseTraversalWithDirection(
         end: Pair<Int, Int>,
         matrix: List<CharArray>,
         costMap: Map<Pair<Int, Int>, Int>
-    ): Set<Pair<Int, Int>> {
-        val bestPathTiles = mutableSetOf<Pair<Int, Int>>()
-        val queue = ArrayDeque<Pair<Int, Int>>()
+    ): MutableSet<Pair<Int, Int>> {
+        data class InternalState(val position: Pair<Int, Int>, val direction: Int)
+        
+        val path = mutableSetOf<Pair<Int, Int>>()
+        val queue = ArrayDeque<InternalState>()
         val visited = mutableSetOf<Pair<Int,Int>>()
-        queue.add(end)
-        bestPathTiles.add(end)
+        
+        queue.add(InternalState(end, -1)) // Direction is irrelevant at the end
+        path.add(end)
         
         while (queue.isNotEmpty()) {
             val current = queue.removeFirst()
-            if (current in visited) continue
-            // Explore neighbors for forward movements
-            for ((dx, dy) in normalDirections) {
-                val nx = current.first - dx
-                val ny = current.second - dy
+            
+            if (current.position in visited) continue
+            visited.add(current.position)
+            
+            val (cx, cy) = current.position
+            if (current.position == 7 to 15) {
+                println("ge") }
+            for ((dirIndex, dir) in normalDirections.withIndex()) {
+                val nx = cx - dir.first
+                val ny = cy - dir.second
+                val neighbor = nx to ny
                 
                 if (nx in matrix.indices && ny in matrix[0].indices && matrix[nx][ny] != '#') {
-                    val neighbor = nx to ny
-                    if (costMap[neighbor] == costMap[current]!! - 1 || costMap[neighbor] == costMap[current]!! - 1001) {
-                        if (neighbor !in bestPathTiles) {
-                            bestPathTiles.add(neighbor)
-                            queue.add(neighbor)
-                        }
+                    val currentCost = costMap[current.position] ?: continue
+                    val neighborCost = costMap[neighbor] ?: continue
+                    
+                    // Check conditions:
+                    // 1. Forward movement with cost difference = 1
+                    // 2. Forward movement without rotation with cost difference = 999 (same direction)
+                    // 3. Rotational movement with cost difference = 1001
+                    if (
+                        neighborCost == currentCost - 1 || // Straight movement
+                        (neighborCost == currentCost + 999 && dirIndex == current.direction) || // No rotation
+                        neighborCost == currentCost - 1001 // Rotation
+                    ) {
+                        queue.add(InternalState(neighbor, dirIndex))
+                        path.add(neighbor)
                     }
                 }
-                
             }
-            visited.add(current)
-            
         }
-        return bestPathTiles
+        
+        return path
     }
     
+
     fun part1(input: List<String>): Int {
         val matrix = input.map { it.toCharArray() }
         val (start, end) = findStartAndEnd(matrix)
@@ -120,12 +135,38 @@ fun main() {
         return result
     }
     
+    fun printPath(matrix: List<CharArray>, path: Set<Pair<Int, Int>>) {
+        val updatedMatrix = matrix.map { it.copyOf() } // Create a mutable copy of the maze
+        path.forEach { (x, y) ->
+            if (updatedMatrix[x][y] == '.') {
+                updatedMatrix[x][y] = 'O' // Mark the path with 'O'
+            }
+        }
+        updatedMatrix.forEach { println(it.concatToString()) }
+    }
+    
+    fun printCostMap(matrix: List<CharArray>, costMap: Map<Pair<Int, Int>, Int>) {
+        val costGrid = matrix.mapIndexed { x, row ->
+            row.mapIndexed { y, cell ->
+                when {
+                    cell == '#' -> "#####" // Wall
+                    (x to y) in costMap -> costMap[x to y].toString().padStart(5, ' ')
+                    else -> "   ." // Unvisited tile
+                }
+            }.joinToString(" ")
+        }
+        costGrid.forEach { println(it) }
+    }
+    
+    
     fun part2(input: List<String>): Int {
         val matrix = input.map { it.toCharArray() }
         val (start, end) = findStartAndEnd(matrix)
         val (_, costMap) = findShortestPathCost(start, end, matrix)
-        val tilesInBestPaths = reverseTraversalOld(start, end, matrix, costMap)
-        return tilesInBestPaths.size
+        printCostMap(matrix, costMap)
+        val path = reverseTraversalWithDirection(end, matrix, costMap)
+        printPath(matrix, path) // Print the maze with the path
+        return path.size
     }
 
 
@@ -141,5 +182,5 @@ fun main() {
     // Read the input from the `src/input.txt` file.
     val input = readInput("$day/input")
     part1(input).println()
-    part2(input).println()
+    part2(input).println() // lower than 481 bigger than 442
 }
