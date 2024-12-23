@@ -1,18 +1,17 @@
 package day15
 
-import Position
+import Point
 import println
 import readInput
-import java.util.Queue
 
 private const val day = "day15"
 
 fun main() {
-    fun findRobot(grid: List<CharArray>): Position {
+    fun findRobot(grid: List<CharArray>): Point {
         for (x in grid.indices) {
             for (y in grid[x].indices) {
                 if (grid[x][y] == '@') {
-                    return Position(x, y)
+                    return Point(x, y)
                 }
             }
         }
@@ -33,19 +32,19 @@ fun main() {
         }
     }
     
-    fun updateRobotPosition(warehouse: MutableList<CharArray>, newRobot: Position, robot: Position): Position {
+    fun updateRobotPosition(warehouse: MutableList<CharArray>, newRobot: Point, robot: Point): Point {
         var intermediate = robot
         warehouse[newRobot.x][newRobot.y] = '@'
         warehouse[intermediate.x][intermediate.y] = '.'
         intermediate = newRobot
         return intermediate
     }
-    fun Char.toDirection(): Position = when(this) {
-        '^' -> Position(-1, 0) // Up
-        'v' -> Position(1, 0)  // Down
-        '<' -> Position(0, -1) // Left
-        '>' -> Position(0, 1)  // Right
-        else -> Position(0, 0)
+    fun Char.toDirection(): Point = when(this) {
+        '^' -> Point(-1, 0) // Up
+        'v' -> Point(1, 0)  // Down
+        '<' -> Point(0, -1) // Left
+        '>' -> Point(0, 1)  // Right
+        else -> Point(0, 0)
     }
     
     fun simulateWarehouse(grid: List<String>, moves: String): List<String> {
@@ -55,7 +54,7 @@ fun main() {
         moves.forEach { move ->
             val direction = move.toDirection()
             
-            val newRobot = Position(robot.x + direction.x, robot.y + direction.y)
+            val newRobot = Point(robot.x + direction.x, robot.y + direction.y)
             val newPositionVal = warehouse[newRobot.x][newRobot.y]
             
             if (newPositionVal == '#') {
@@ -66,7 +65,7 @@ fun main() {
             } else if (newPositionVal== 'O') {
                 var currentPos = newRobot
                 while (true) {
-                    val nextPos = Position(currentPos.x + direction.x, currentPos.y + direction.y)
+                    val nextPos = Point(currentPos.x + direction.x, currentPos.y + direction.y)
                     val nextPosVal = warehouse[nextPos.x][nextPos.y]
                     
                     if (nextPos.x !in warehouse.indices || nextPos.y !in warehouse[0].indices || nextPosVal == '#') {
@@ -87,10 +86,10 @@ fun main() {
         return warehouse.map { it.joinToString("") }
     }
 
-    fun checkRecusive(pos: Position, direction: Position, transitions: MutableList<Triple<Char, Position, Position>>, warehouse: MutableList<CharArray>): Boolean {
+    fun checkRecusive(pos: Point, direction: Point, transitions: MutableList<Triple<Char, Point, Point>>, warehouse: MutableList<CharArray>): Boolean {
         
         val curPosVal = warehouse[pos.x][pos.y]
-        val nextPos = Position(pos.x + direction.x, pos.y + direction.y)
+        val nextPos = Point(pos.x + direction.x, pos.y + direction.y)
         if (nextPos.x !in warehouse.indices || nextPos.y !in warehouse[0].indices) return false
         
         val newPositionVal = warehouse[nextPos.x][nextPos.y]
@@ -101,9 +100,9 @@ fun main() {
             if (newPositionVal == '.') return true
             else {
                 val otherPos = if (newPositionVal == '[') {
-                    Position(nextPos.x, nextPos.y+1)
+                    Point(nextPos.x, nextPos.y+1)
                 } else {
-                    Position(nextPos.x, nextPos.y-1)
+                    Point(nextPos.x, nextPos.y-1)
                 }
                 return checkRecusive(nextPos, direction, transitions, warehouse) && checkRecusive(otherPos, direction, transitions, warehouse)
             }
@@ -111,7 +110,7 @@ fun main() {
         
     }
     
-    fun MutableList<CharArray>.applyTransitions(transitions: MutableList<Triple<Char, Position, Position>>) {
+    fun MutableList<CharArray>.applyTransitions(transitions: MutableList<Triple<Char, Point, Point>>) {
         transitions.reversed().forEach { (char, from, to) ->
             this[to.x][to.y] = char
             //this[from.x][from.y] = '.'
@@ -131,7 +130,7 @@ fun main() {
         moves.forEach { move ->
             val direction = move.toDirection()
             
-            val newRobot = Position(robot.x + direction.x, robot.y + direction.y)
+            val newRobot = Point(robot.x + direction.x, robot.y + direction.y)
             val newPositionVal = warehouse[newRobot.x][newRobot.y]
             
             if (newPositionVal == '#') {
@@ -140,13 +139,13 @@ fun main() {
                 // Empty space: Move robot
                 robot = updateRobotPosition(warehouse, newRobot, robot)
             } else {
-                val transitions = mutableListOf<Triple<Char, Position, Position>>()
+                val transitions = mutableListOf<Triple<Char, Point, Point>>()
                 var currentPos = newRobot
 
                 if (move in setOf('<', '>')) {
                     
                     while (true) {
-                        val nextPos = Position(currentPos.x + direction.x, currentPos.y + direction.y)
+                        val nextPos = Point(currentPos.x + direction.x, currentPos.y + direction.y)
                         val nextPosVal = warehouse[nextPos.x][nextPos.y]
                         val curPosVal = warehouse[currentPos.x][currentPos.y]
                         
@@ -165,9 +164,9 @@ fun main() {
                 } else {
                     
                     val otherPos = if (newPositionVal == '[') {
-                        Position(currentPos.x, currentPos.y+1)
+                        Point(currentPos.x, currentPos.y+1)
                     } else {
-                        Position(currentPos.x, newRobot.y-1)
+                        Point(currentPos.x, newRobot.y-1)
                     }
                     
                     val canMove = checkRecusive(currentPos, direction, transitions, warehouse) && checkRecusive(otherPos, direction, transitions, warehouse)

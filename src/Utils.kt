@@ -47,4 +47,6 @@ val directions = listOf(
     *diagonalDirections.toTypedArray()
 )
 
-data class Position(val x: Int, val y: Int)
+data class Point(val x: Int, val y: Int) {
+    operator fun plus(other: Point) = Point(x + other.x, y + other.y)
+}
